@@ -1,0 +1,26 @@
+{
+  "name": "batching",
+  "version": "1.0.0",
+  "description": "Map multiple call async functions that have the same context with the earliest result returned.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hoangtd97/batching.git"
+  },
+  "keywords": [
+    "batch",
+    "batching"
+  ],
+  "author": "Trần Đình Hoàng",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hoangtd97/batching/issues"
+  },
+  "homepage": "https://github.com/hoangtd97/batching#readme",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
+}
