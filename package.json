@@ -4,7 +4,7 @@
   "description": "Map multiple call async functions that have the same context with the earliest result returned.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha *.spec.js --exit"
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,10 @@
   },
   "homepage": "https://github.com/hoangtd97/batching#readme",
   "dependencies": {
-    "lodash": "^4.17.11"
+    "lodash.isequal": "^4.5.0"
+  },
+  "devDependencies": {
+    "lodash.random": "^3.2.0",
+    "mocha": "^6.1.4"
   }
 }

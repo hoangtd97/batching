@@ -1,14 +1,17 @@
 'use strict';
 
-const _               = require('lodash');
+const _ = {
+  isEqual : require('lodash.isequal')
+}
 
-module.exports        = batch;
+module.exports = batch;
 module.exports.setLog = setLog;
 
-const F_QUEUE         = new Map();
-const OPTIONS         = {
-  logStart            : false,
-  logFinish           : false,
+const F_QUEUE = new Map();
+
+const OPTIONS = {
+  logStart: false,
+  logFinish: false,
 }
 
 /**
