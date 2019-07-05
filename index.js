@@ -11,8 +11,20 @@ module.exports = Object.assign(Batch(), { Batch });
  * @param {object} options 
  * @param {boolean | function} [options.logStart=false] interface : (asyncFunc : function, context : object) => void
  * @param {boolean | function } [options.logFinish=false] interface : (asyncFunc : function, context : object, err : object, res : any) => void
- * @param {function } [options.isArgsEqual=_.isEqual]
- * @param {function } [options.isThisEqual=_.isEqual]
+ * @param {function } [options.isArgsEqual=_.isEqual] arguments comparator
+ * @param {function } [options.isThisEqual=_.isEqual] this pointer comparator
+ * 
+ * @return {function} batch
+ * 
+ * @example
+ * 
+ * const { Batch } = require('batching');
+ *
+ * const custom_batch = Batch({
+ *   isArgsEqual : (a, b) => a[0] === b[0],
+ *   isThisEqual : (a, b) => a === b,
+ *   logFinish   : true
+ * });
  */
 function Batch(options) {
   const F_QUEUE = new Map();
@@ -31,7 +43,27 @@ function Batch(options) {
    * @param {function} asyncFunc
    * @param {any} [thisArg]
    * 
-   * @return {(...args) => Promise} batchedAsyncFunction
+   * @return {function} batchedAsyncFunction : (...args) => Promise
+   * 
+   * @example
+   * 
+   * // Instead of : 
+   * const batch = require('batching');
+   * 
+   * let user1 = await batch(findOne, { id : 10000 }, UserModel);
+   * let user2 = await batch(findOne, { id : 10001 }, UserModel);
+   * let user3 = await batch(findOne, { id : 10000 }, UserModel);
+   * 
+   * // Use can wrap findOne() :
+   * 
+   * const batchedFindOne = batch.wrap(findOne, UserModel);
+   * 
+   * // And call it :
+   * 
+   * let user1 = await batchedFindOne({ id : 1000 });
+   * let user2 = await batchedFindOne({ id : 1001 });
+   * let user3 = await batchedFindOne({ id : 1000 });
+   * 
    */
   function wrap(asyncFunc, thisArg) {
     if (typeof asyncFunc !== 'function') {
@@ -175,6 +207,10 @@ function Batch(options) {
       });
   }
 
+  /**
+   * delete contexts as index
+   * If all contexts is undefined, remove asyncFunc from queue
+   */
   function clearContext({ contexts, index, asyncFunc }) {
     if (index >= 0) {
       contexts[index] = undefined;
@@ -208,7 +244,7 @@ function Batch(options) {
         console.log(' * TIME        : ', msDiff(context.start_at, context.end_at) + 'ms');
         console.log(' * ARGS        : ', JSON.stringify(context.args));
         console.log(' * THIS        : ', stringifyThisArg(context.thisArg));
-        console.log(' * Callbacks   : ', context.callbacks.length);
+        console.log(' * CALL_TIMES  : ', context.callbacks.length);
         if (err) {
           console.log(' * ERROR       : ', JSON.stringify(err));
         }

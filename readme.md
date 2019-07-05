@@ -166,22 +166,83 @@ slowDoubleAPI(3)
 
 # API
 
-## Functions
+<a id="Batch"></a>
 
-<dl>
-<dt><a href="###batch">batch(asyncFunc, args, thisArg)</a> ⇒ <code>Promise</code></dt>
-<dd><p>Map multiple call async functions that have the same context with the earliest result returned.</p>
-</dd>
-<dt><a href="###setLog">setLog(options)</a></dt>
-<dd><p>Set log options</p>
-</dd>
-</dl>
+## Batch(options) ⇒ <code>function</code>
+Create new batch
 
-<a name="batch"></a>
+**Kind**: global function  
+**Returns**: <code>function</code> - batch  
 
-## batch(asyncFunc, args, thisArg) ⇒ <code>Promise</code>
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| options | <code>object</code> |  |  |
+| [options.logStart] | <code>boolean</code> \| <code>function</code> | <code>false</code> | interface : (asyncFunc : function, context : object) => void |
+| [options.logFinish] | <code>boolean</code> \| <code>function</code> | <code>false</code> | interface : (asyncFunc : function, context : object, err : object, res : any) => void |
+| [options.isArgsEqual] | <code>function</code> | <code>_.isEqual</code> | arguments comparator |
+| [options.isThisEqual] | <code>function</code> | <code>_.isEqual</code> | this pointer comparator |
+
+**Example**  
+```js
+const { Batch } = require('batching');
+
+const custom_batch = Batch({
+  isArgsEqual : (a, b) => a[0] === b[0],
+  isThisEqual : (a, b) => a === b,
+  logFinish   : true
+});
+```
+
+- [Batching](#Batching)
+  - [Usage](#Usage)
+- [API](#API)
+  - [Batch(options) ⇒ <code>function</code>](#Batchoptions--codefunctioncode)
+    - [Batch~wrap(asyncFunc, [thisArg]) ⇒ <code>function</code>](#BatchwrapasyncFunc-thisArg--codefunctioncode)
+    - [Batch~batch(asyncFunc, args, thisArg) ⇒ <code>Promise</code>](#BatchbatchasyncFunc-args-thisArg--codePromisecode)
+    - [Batch~setLog(options)](#BatchsetLogoptions)
+
+<a id="Batch..wrap"></a>
+
+-----
+
+### Batch~wrap(asyncFunc, [thisArg]) ⇒ <code>function</code>
+Wrap a async function to support batching
+
+**Kind**: inner method of [<code>Batch</code>](#Batch)  
+**Returns**: <code>function</code> - batchedAsyncFunction : (...args) => Promise  
+
+| Param | Type |
+| --- | --- |
+| asyncFunc | <code>function</code> | 
+| [thisArg] | <code>any</code> | 
+
+**Example**  
+```js
+// Instead of : 
+const batch = require('batching');
+
+let user1 = await batch(findOne, { id : 10000 }, UserModel);
+let user2 = await batch(findOne, { id : 10001 }, UserModel);
+let user3 = await batch(findOne, { id : 10000 }, UserModel);
+
+// Use can wrap findOne() :
+
+const batchedFindOne = batch.wrap(findOne, UserModel);
+
+// And call it :
+
+let user1 = await batchedFindOne({ id : 1000 });
+let user2 = await batchedFindOne({ id : 1001 });
+let user3 = await batchedFindOne({ id : 1000 });
+```
+<a id="Batch..batch"></a>
+
+-----
+
+### Batch~batch(asyncFunc, args, thisArg) ⇒ <code>Promise</code>
 Map multiple call async functions that have the same context with the earliest result returned.
 
+**Kind**: inner method of [<code>Batch</code>](#Batch)  
 **Returns**: <code>Promise</code> - that return by first finished invoking  
 
 | Param | Type |
@@ -199,10 +260,14 @@ let store = await batch(findOneStore, [{ id : 10010 }]);
 // with thisArg
 let store = await batch(findOne, [{ id : 10010 }], StoreModel);
 ```
-<a name="setLog"></a>
+<a id="Batch..setLog"></a>
 
-## setLog(options)
+-----
+
+### Batch~setLog(options)
 Set log options
+
+**Kind**: inner method of [<code>Batch</code>](#Batch)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -225,3 +290,4 @@ batch.setLog({
   logEnd   : (asyncFunc, context, err, res) => {},
 });
 ```
+<a id="Batch..clearContext"></a>
