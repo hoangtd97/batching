@@ -48,8 +48,8 @@ async function callWithoutBatch() {
   return await Promise.all(tasks.map(task => task.f(...task.args)));
 };
 
-async function callWithBatch() {
-  return await Promise.all(tasks.map(task => batch(task.f, task.args)));
+async function callWithBatch(batcher = batch) {
+  return await Promise.all(tasks.map(task => batcher(task.f, task.args)));
 };
 
 describe('Batch ', async () => {
@@ -64,6 +64,19 @@ describe('Batch ', async () => {
 
   it ('should reduce call times', () => {
     assert.ok(call_times < tasks.length * 2);
+  });
+
+  it ('should support custom comparator', async () => {
+    const { Batch } = batch;
+
+    const custom_batch = Batch({
+      isArgsEqual : (a, b) => a[0] === b[0],
+      isThisEqual : (a, b) => a === b
+    });
+
+    const [resWithoutCustomBatch, resWithCustomBatch] = await Promise.all([callWithoutBatch(), callWithBatch(custom_batch)]);
+
+    assert.deepEqual(resWithoutCustomBatch, resWithCustomBatch);
   })
 });
 
