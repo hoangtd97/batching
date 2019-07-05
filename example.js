@@ -106,5 +106,5 @@ async function testWithBatch() {
 // The first call slowDoubleAPI(1) will be executed, but later call slowDoubleAPI(1) before first call finish won't, just push to queue, and assign them to the first call result.
 
 /////////////////////////////////////////////////
-// testWithoutBatch();
-testWithBatch();
+testWithoutBatch();
+// testWithBatch();

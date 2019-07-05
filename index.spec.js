@@ -21,7 +21,7 @@ async function slowDoubleAPI(a) {
   });
 }
 
-const tasks = [
+const TASKS = [
   { f : slowDoubleAPI, args : [1] },
   { f : slowDoubleAPI, args : [2] },
   { f : slowDoubleAPI, args : [1] },
@@ -44,11 +44,11 @@ const tasks = [
   { f : slowDoubleAPI, args : [1] },
 ];
 
-async function callWithoutBatch() {
+async function callWithoutBatch({ tasks = TASKS }={}) {
   return await Promise.all(tasks.map(task => task.f(...task.args)));
 };
 
-async function callWithBatch(batcher = batch) {
+async function callWithBatch({ tasks = TASKS, batcher = batch }={}) {
   return await Promise.all(tasks.map(task => batcher(task.f, task.args)));
 };
 
@@ -63,7 +63,7 @@ describe('Batch ', async () => {
   });
 
   it ('should reduce call times', () => {
-    assert.ok(call_times < tasks.length * 2);
+    assert.ok(call_times < TASKS.length * 2);
   });
 
   it ('should support custom comparator', async () => {
@@ -74,9 +74,26 @@ describe('Batch ', async () => {
       isThisEqual : (a, b) => a === b
     });
 
-    const [resWithoutCustomBatch, resWithCustomBatch] = await Promise.all([callWithoutBatch(), callWithBatch(custom_batch)]);
+    const [resWithoutCustomBatch, resWithCustomBatch] = await Promise.all([callWithoutBatch(), callWithBatch({ batcher : custom_batch })]);
 
     assert.deepEqual(resWithoutCustomBatch, resWithCustomBatch);
+  });
+
+  it ('should wrap a async function to support batching', async () => {
+    const { Batch } = batch;
+
+    const custom_batch = Batch({
+      isArgsEqual : (a, b) => a[0] === b[0],
+      isThisEqual : (a, b) => a === b
+    });
+
+    const batchedSlowDoubleAPI = custom_batch.wrap(slowDoubleAPI);
+
+    const new_tasks = TASKS.map(task => Object({ f : batchedSlowDoubleAPI, args : task.args }));
+
+    const [resWithoutBatchWrap, resWithBatchWrap] = await Promise.all([callWithoutBatch(), callWithoutBatch({ tasks : new_tasks })]);
+
+    assert.deepEqual(resWithoutBatchWrap, resWithBatchWrap);
   })
 });
 

@@ -9,8 +9,8 @@ module.exports = Object.assign(Batch(), { Batch });
 /**
  * Create new batch 
  * @param {object} options 
- * @param {boolean | function } [options.logStart=false]
- * @param {boolean | function } [options.logFinish=false]
+ * @param {boolean | function} [options.logStart=false] interface : (asyncFunc : function, context : object) => void
+ * @param {boolean | function } [options.logFinish=false] interface : (asyncFunc : function, context : object, err : object, res : any) => void
  * @param {function } [options.isArgsEqual=_.isEqual]
  * @param {function } [options.isThisEqual=_.isEqual]
  */
@@ -23,6 +23,32 @@ function Batch(options) {
     isArgsEqual : _.isEqual,
     isThisEqual : _.isEqual
   }, options);
+
+  return Object.assign(batch, { setLog, wrap });
+
+  /**
+   * Wrap a async function to support batching
+   * @param {function} asyncFunc
+   * @param {any} [thisArg]
+   * 
+   * @return {(...args) => Promise} batchedAsyncFunction
+   */
+  function wrap(asyncFunc, thisArg) {
+    if (typeof asyncFunc !== 'function') {
+      throw new TypeError(`asyncFunc expect a function, but received ${asyncFunc}`);
+    }
+
+    return function batchedAsyncFunction(...args) {
+      return new Promise((resolve, reject) => {
+        _batch(asyncFunc, args, thisArg, (err, res) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(res);
+        });
+      });
+    }
+  }
   
   /**
    * Map multiple call async functions that have the same context with the earliest result returned.
@@ -158,7 +184,6 @@ function Batch(options) {
     }
   }
 
-  
   function logStart(asyncFunc, context) {
     if (OPTIONS.logStart) {
       if (typeof OPTIONS.logStart === 'function') {
@@ -205,8 +230,6 @@ function Batch(options) {
     }
     return [-1, undefined];
   }
-
-  return Object.assign(batch, { setLog });
 }
 
 function msDiff(date_start, date_end) {
