@@ -1,6 +1,6 @@
 {
   "name": "batching",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Map multiple call async functions that have the same context with the earliest result returned.",
   "main": "index.js",
   "scripts": {

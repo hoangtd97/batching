@@ -259,8 +259,10 @@ function Batch(options) {
     if (Array.isArray(contexts)) {
       for (let i in contexts) {
         let context = contexts[i];
-        if (OPTIONS.isArgsEqual(args, context.args) && OPTIONS.isThisEqual(thisArg, context.thisArg)) {
-          return [i, context];
+        if (context && typeof context === 'object') {
+          if (OPTIONS.isArgsEqual(args, context.args) && OPTIONS.isThisEqual(thisArg, context.thisArg)) {
+            return [i, context];
+          }
         }
       }
     }
